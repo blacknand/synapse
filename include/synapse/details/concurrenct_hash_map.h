@@ -28,6 +28,17 @@ private:
         return shards.at(hasher(key) % shards.size());
     }
 
+    size_t size() const
+    {
+        // NOTE: is there a better way to do this? locking each shard just seems inefficient
+        size_t total_size = 0;
+        for (const auto& shard : shards) {
+            std::shared_lock lock(shard.mutex_);
+            total_size += shard.hash_map.size();
+        }
+        return total_size;
+    }
+
     Hash hasher;
     std::vector<Shard> shards;
 public:
